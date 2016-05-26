@@ -1,0 +1,72 @@
+<html>
+<head>
+<script src='https://www.gstatic.com/firebasejs/3.0.3/firebase.js'></script>
+<title>Firebase + Cloud Vision Stream</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var imagesList = document.getElementById('images'),
+      textInput = document.getElementById('text'),
+      sendButton = document.getElementById('send'),
+      file = document.getElementById('file');
+
+  // Set up Firebase Config
+  // TODO: get values from console.firebase.google.com
+  var config = {
+      apiKey: "<your-api-key>",
+      authDomain: "<your-auth-domain>",
+      databaseURL: "<your-database-url>",
+      storageBucket: "<your-storage-bucket>",
+    };
+
+  // Initilize Firebase App, get DB and Storage services
+  var app = firebase.initializeApp(config),
+      database = app.database(),
+      storage = app.storage();
+
+  // Handle file uploads to Storage
+  function handleFileSelect(e) {
+    e.preventDefault();
+    var files = e.target.files,
+      i, file;
+    for (i=0; file=files[i]; i++) {
+      var metadata = {
+        'contentType': file.type,
+      };
+      var uploadTask = storage.ref().child('images/' + file.name).put(file, metadata);
+      uploadTask.on('state_changed', null, function(error) {
+        console.error('Upload failed:', error)
+      }, function() {
+        console.log('Upload succeeded!')
+      }.bind(uploadTask));
+    }
+    return false;
+  }
+
+  file.addEventListener('change', handleFileSelect, false);
+
+  // Handle new images added to the Database
+  database.ref().child('images').on('child_added', function(snapshot) {
+    data = snapshot.val()
+    var labelString = '';
+    for (var i = 0; i < data.labels.length; i++) {
+      label = data.labels[i];
+      miniString = label.desc + ' ' + label.score + '%<br/>';
+      labelString += miniString + ' ';
+    }
+    var li = document.createElement('li');
+    li.innerText = labelString;
+    li.innerHTML = '<img src="' + data.url + '" width="320px" height="auto"/><br/>' + labelString;
+    imagesList.appendChild(li);
+  });
+
+});
+</script>
+</head>
+<body>
+  <ul id='images'></ul>
+  <div id='footer'>
+    <input type="file" id="file" name="file" />
+  </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{ "name": "firebase-cloud-vision-test",
+  "description": "testing firebase storage + cloud functions + cloud vision",
+  "version": "0.0.1",
+  "dependencies": {
+    "firebase": "3.0.3",
+    "gcloud": "0.34.0"
+  }
+}
